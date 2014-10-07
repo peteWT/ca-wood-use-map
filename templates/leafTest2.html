@@ -18,6 +18,8 @@
 
 	<!-- Jquery -->
 	<script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+	<!-- Bells and Whistles -->	
 	<script src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 
 	<!-- context menu plugin -->
@@ -28,10 +30,29 @@
 	<script src="http://smeijer.github.io/GeoSearch/js/l.control.geosearch.js"></script>
 	<script src="http://smeijer.github.io/GeoSearch/js/l.geosearch.provider.google.js"></script>
 	<link rel="stylesheet" href="http://smeijer.github.io/GeoSearch/css/l.geosearch.css" />
+	<!-- leaflet share control scripts and css https://github.com/makinacorpus/Leaflet.Social/blob/master/example.html -->
+	<script type='text/javascript' src="http://makinacorpus.github.io/Leaflet.Social/leaflet.social.js"></script>
+	<link rel="stylesheet" type="text/css" href="http://makinacorpus.github.io/Leaflet.Social/leaflet.social.css" />
+
+	<script type='text/javascript' src="https://raw.github.com/mlevans/leaflet-hash/master/leaflet-hash.js"></script>   <!-- leaflet hash for social integration-->
+
+	<link href="http://netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css" rel="stylesheet" /><!-- font aswesome icons used in social plugin-->
+
+	<!-- fullscreen scripts -->
+	<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v0.0.1/Leaflet.fullscreen.min.js'></script>
+	<link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v0.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+
+	<!-- zoom slider scripts -->
+	<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-zoomslider/v0.7.0/L.Control.Zoomslider.js'></script>
+	<link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-zoomslider/v0.7.0/L.Control.Zoomslider.css' rel='stylesheet' />
+	<!-- MINIMAP Plugins -->
+	<link rel="stylesheet" href="http://norkart.github.io/Leaflet-MiniMap/Control.MiniMap.css" />
+	<script src="http://norkart.github.io/Leaflet-MiniMap/Control.MiniMap.js" type="text/javascript"></script>
+
 
 
 	<!-- map div tag/styling -->
-	<div id="map" style="width: 600px; height: 400px"></div>
+	<div id="map" style="width: 1000px; height: 800px"></div>
 
 
 	<!--Legend div tag/ styling  -->
@@ -158,25 +179,33 @@ var map = L.map('map', {
         // layers: [osmlayer, esrilayer, terrainlayer, streets]
     });
 
-
-
 // variable to call variety of data from postgresql
 var data={{facilities|tojson|safe}}
 
 //# keys in json
 var itemCount=Object.keys(data).length;
 
+var Statusicon = {"Statusicon":[
+    {"status_1":"active", "staturl":"https://docs.google.com/uc?id=0B3yNiqk9X8DmczlWeTgyNEhzV0U&amp;export-png"},
+    {"status_1":"Non-Operational", "staturl":"https://docs.google.com/uc?id=0B3yNiqk9X8DmczlWeTgyNEhzV0U&amp;export-png"},
+    {"status_1":"Development", "staturl":"https://docs.google.com/uc?id=0B3yNiqk9X8DmczlWeTgyNEhzV0U&amp;export-png"},
+    {"status_1":"Pilot", "staturl":"https://docs.google.com/uc?id=0B3yNiqk9X8DmczlWeTgyNEhzV0U&amp;export-png"},
+    {"status_1":"Idle", "staturl":"https://docs.google.com/uc?id=0B3yNiqk9X8DmczlWeTgyNEhzV0U&amp;export-png"},
+    {"status_1":"Proposed", "staturl":"https://docs.google.com/uc?id=0B3yNiqk9X8DmczlWeTgyNEhzV0U&amp;export-png"}
+]};
+
 
 // milltype if statement to refernce general popup?
-for (var key in data ){
+for (var key in data, stat= 'active' ){
 	item = data[key]
 	var dbLoc = item.geom.coordinates.reverse();
 	var nm=item.facilityna;
 	var tp=item.milltype;
 	var stat=item.status_1;
 	var fid=item.ogc_fid;
+// create json object that has (item1,item1.2, itme2, item2.2) that includes jsut status and url. w/ label then reference the object below w/ simialr to itemCount = Object.keys(stat); or something like that 
 
-	// cutomizing marker attmpt
+	//custom marker url
 	var greenIcon = L.icon ({
 		iconUrl: 'https://docs.google.com/uc?id=0B3yNiqk9X8DmczlWeTgyNEhzV0U&amp;export-png'});
 
@@ -211,6 +240,52 @@ L.control.layers(
  // autoZIndex: true,
 }).addTo(map);
 
+
+// Bells and Whistles
+
+
+// adds share link twitter et al. 
+L.control.social({position:'topleft', default_text: "Come check out this map!"}).addTo(map);
+
+
+// adds legend to map
+var legend = L.control({position: 'bottomright'});
+legend.onAdd = function(map) {
+	this._div = L.DomUtil.create('div', 'myControl');
+	this._div.innerHTML = '<h3>Map Icon Key</h3>'+'<span title = "Electric Generator Status/Wood Processor Status" style="cursor:help;text-align:right;font-size:11px;font-family: Arial; font-weight: bold;">Facility Status </span><br>        <hr>        <span class="symbol_rectangle" style="padding-left:20px;padding-top:3px;padding-bottom:3px;border:0px solid #000000;background: #23c02c;overflow:hidden;">&nbsp;</span> Operational / Open<br>        <span class="symbol_rectangle" style="padding-left:20px;padding-top:3px;padding-bottom:3px;border:0px solid #000000;background: #2141F3;overflow:hidden;">&nbsp;</span> Active Development<br>        <span class="symbol_rectangle" style="padding-left:20px;padding-top:3px;padding-bottom:3px;border:0px solid #BD8339;background: #F4EA00;overflow:hidden;">&nbsp;</span> Idle / Inactive<br>        <span class="symbol_rectangle" style="padding-left:20px;padding-top:3px;padding-bottom:3px;border:0px solid #000000;background: #C100F2;overflow:hidden;">&nbsp;</span> Pilot Project<br>        <span class="symbol_rectangle" style="padding-left:20px;padding-top:3px;padding-bottom:3px;border:0px solid #000000;background: #1CEBE5;overflow:hidden;">&nbsp;</span> Proposed Project<br>        <span class="symbol_rectangle" style="padding-left:20px;padding-top:3px;padding-bottom:3px;border:0px solid #000000;background: #c1271f;overflow:hidden;">&nbsp;</span> Non-Operational / Liquidated        <p>          <span style="text-align:right;font-size:11px;font-family: Arial; font-weight: bold;">Facility Type</span>          <br>           <hr>          <p  title = "Power Plant Facilities Utilizing Woody Feestock Material Sourced from California" style="cursor:help;font-size:12px; color:green;"> Electrical Generation <img src = "https://docs.google.com/uc?id=0B3yNiqk9X8Dmc1hzZG5wZ0RLUDg&amp;export-png" width = "20" height = "20" border = "0"/>          </p>          <img src="https://docs.google.com/uc?id=0B3yNiqk9X8DmTXRkQllHdWpldU0&amp;export-png" width="20" height="20" border="0"/>&nbsp;Standalone Generator          <br>          <img src="https://docs.google.com/uc?id=0B3yNiqk9X8Dmc1hzZG5wZ0RLUDg" width="20" height="20" border="0" />&nbsp;Cogeneration          <br>          <p title= "Displays Sawmills and other Wood Processing Facilities within California" style="cursor:help;font-size:12px; color:green;">Sawmill & Other &nbsp; <img src="https://docs.google.com/uc?id=0B3yNiqk9X8Dmb0RZbm1OZGNFaTg" width="20" height="20" border="0" /></p>          <span title = "Includes Dimensional and Stud Mills" style="cursor:help;"><img src="https://docs.google.com/uc?id=0B3yNiqk9X8DmZ2Q2V0ZIcU9laG8" width="20" height="20" border="0" />&nbsp;Sawmill </span>          <br>          <span title ="Includes Post and pole, Fenceboard, Cedar, and Redwood Mills" style="cursor:help;"><img src="https://docs.google.com/uc?id=0BzwsVf_VMR5JeXRBbmR6bnV6OWs" width="20" height="20" border="0" />&nbsp;Specialty Mill          </span>          <br>          <span title = "Includes OSB, Veneer, Lvl, MDF Facilities" style="cursor:help"> <img src="https://docs.google.com/uc?id=0BzwsVf_VMR5JLWZib2pkOXZYOW8" width="20" height="20" border="0" />&nbsp;Engineered Wood </span>          <br>          <span title = "Includes Pulp, Particleboard, and Containerboard Mills" style="cursor:help"><img src="https://docs.google.com/uc?id=0B3yNiqk9X8Dmck1jdEJZTEUyMEU" width="20" height="20" border="0" />&nbsp;Fiber           </span>          <br>          <span title = "Includes Small Production Mills and Shavings Mills" style="cursor:help"><img src="https://docs.google.com/uc?id=0B3yNiqk9X8DmZGc0YW1MeU9XNG8" width="20" height="20" border="0" />&nbsp;Other Mill Type</span>          <p>           Please reference all data UC Berkeley <br><span style="font-weight: bold;font-size: 12px"><a href="ucanr.edu/sites/WoodyBiomass/" target="blank"> Woody Biomass Utilization Group</a></span>      '
+
+	return this._div;
+}
+
+legend.addTo(map);
+
+
+// adds a scale to the map
+L.control.scale({
+	metric:false,
+	position: 'bottomleft'
+});
+
+// GEOCONTROL - gets url parameters
+function getURLParameter(name) {
+  return decodeURI(
+    (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,])[1]
+    );
+}
+var regionParameter = getURLParameter('region');
+var region = (regionParameter === 'undefined') ? '' : regionParameter;
+
+// MINIMAP - adds minimap 
+var osm2 = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {minZoom: 0, maxZoom: 13, });
+
+var miniMap = new L.Control.MiniMap(osm2, {width: 200, height: 150, position: 'topright', toggleDisplay: false }).addTo(map);
+// GEOCONTROL - add geolocation search box
+new L.Control.GeoSearch({
+	provider: new L.GeoSearch.Provider.Google({
+		region: region
+	})
+}).addTo(map);
+</script>
 
 </script>
 </body>
